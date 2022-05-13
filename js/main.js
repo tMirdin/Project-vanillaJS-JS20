@@ -119,6 +119,20 @@ document.addEventListener("click", (event) => {
         editInpAuthor.value = data.bookAuthor;
         editInpImage.value = data.bookImage;
         editInpPrice.value = data.bookPrice;
+        editBtnSave.setAttribute("id", data.id);
       });
   }
 });
+
+editBtnSave.addEventListener("click", () => {
+  let editedBook = {
+    bookName: editInpName.value,
+    bookAuthor: editInpAuthor.value,
+    bookImage: editInpImage.value,
+    bookPrice: editInpPrice.value,
+  };
+});
+
+function editBook(objEditBook) {
+  fetch();
+}

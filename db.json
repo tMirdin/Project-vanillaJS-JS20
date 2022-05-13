@@ -1,18 +1,11 @@
 {
   "books": [
     {
-      "bookName": "hkjh",
-      "bookAuthor": "jhjk",
-      "bookImage": "hjk",
-      "bookPrice": "hjkh",
+      "bookName": "Рулсан и Людмила",
+      "bookAuthor": "А.С. Пушкин",
+      "bookImage": "http://t2.gstatic.com/licensed-image?q=tbn:ANd9GcR2jAuzWCmLJotQYDKsHpBtETBppehyUi7RJ-nd2BSHA7eIFBO2JRE0hhtzUP0w",
+      "bookPrice": "500",
       "id": 1
-    },
-    {
-      "bookName": "jhjk",
-      "bookAuthor": "hkh",
-      "bookImage": "jkh",
-      "bookPrice": "jh",
-      "id": 2
     }
   ]
 }
