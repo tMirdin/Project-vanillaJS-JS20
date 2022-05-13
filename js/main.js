@@ -131,8 +131,16 @@ editBtnSave.addEventListener("click", () => {
     bookImage: editInpImage.value,
     bookPrice: editInpPrice.value,
   };
+  // console.log(editBtnSave.id);
+  editBook(editedBook, editBtnSave.id);
 });
 
-function editBook(objEditBook) {
-  fetch();
+function editBook(objEditBook, id) {
+  fetch(`${API}/${id}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json; charset=utf-8",
+    },
+    body: JSON.stringify(objEditBook),
+  }).then(() => readBooks());
 }
