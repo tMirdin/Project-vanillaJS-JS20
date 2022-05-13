@@ -9,6 +9,9 @@ let inpPrice = document.getElementById("inpPrice");
 let btnAdd = document.getElementById("btnAdd");
 let sectionBooks = document.getElementById("sectionBooks");
 let btnOpenForm = document.getElementById("flush-collapseOne");
+let searchValue = ""; // Переменная для нашего поиска
+let currentPage = 1; // Переменная для пагинации, текущая страница
+let countPage = 1; // количество всех страниц
 
 // Навешиваем событие на кнопку Добавить
 btnAdd.addEventListener("click", () => {
@@ -56,7 +59,8 @@ function createBooks(book) {
 // !=============== READ ====================
 // Создаём функцию для отображения
 function readBooks() {
-  fetch(API) // получение данных из db.json
+  // отправляем запрос в db.json с настройками поиска и пагинации. Знак q - нужен для того, чтобы найти элемент во всей базе данных. Знак & - ставится если добавляем новые настройки к предыдущим. _page - для того, чтобы открыть конкретную страницу. _limit - для отображения нескольких элементов на сайте
+  fetch(`${API}?q=${searchValue}&_page=${currentPage}&_limit=6`) // получение данных из db.json
     .then((res) => res.json())
     .then((data) => {
       sectionBooks.innerHTML = ""; // очищаем тег section, чтобы не было дубликатов
@@ -82,6 +86,7 @@ function readBooks() {
         </div>
         `;
       });
+      sumPage(); // вызов функции для нахождения количества страниц
     });
 }
 readBooks(); // один раз вызываем функцию отображения данных для того, чтобы при первом посещении сайта данные отобразились
@@ -108,23 +113,30 @@ let editInpImage = document.getElementById("editInpImage");
 let editInpPrice = document.getElementById("editInpPrice");
 let editBtnSave = document.getElementById("editBtnSave");
 
+// Событие на кнопку изменить
 document.addEventListener("click", (event) => {
+  // с помощью объекта event ищем класс нашего элемента
   let editArr = [...event.target.classList];
   if (editArr.includes("btnEdit")) {
-    let id = event.target.id;
-    fetch(`${API}/${id}`)
+    // проверям есть ли в массиве с классами наш класс btnEdit
+    let id = event.target.id; // сохраняем в переменную id, id нашего элемента
+    fetch(`${API}/${id}`) // с помощью запроса GET, обращаемся к конкретному объекту
       .then((res) => res.json())
       .then((data) => {
+        // сохраняем в инпуты модального окна, днные из db.json
         editInpName.value = data.bookName;
         editInpAuthor.value = data.bookAuthor;
         editInpImage.value = data.bookImage;
         editInpPrice.value = data.bookPrice;
+        // добавляем при помощи метода setAttribute id в нашу кнопку Сохранить, для того чтобы передать в дальнейшем в аргументы функции editBook()
         editBtnSave.setAttribute("id", data.id);
       });
   }
 });
 
+// Событие на кнопку сохранить
 editBtnSave.addEventListener("click", () => {
+  // Создаём объект с измененными данными, в дальнейшем для отправки в db.json
   let editedBook = {
     bookName: editInpName.value,
     bookAuthor: editInpAuthor.value,
@@ -132,15 +144,57 @@ editBtnSave.addEventListener("click", () => {
     bookPrice: editInpPrice.value,
   };
   // console.log(editBtnSave.id);
-  editBook(editedBook, editBtnSave.id);
+
+  editBook(editedBook, editBtnSave.id); // вызов функции для отправки измененных данных в db.json, в качестве аргумента передаём: вышесозданный объект и значение аттрибута id из кнопку Сохранить
 });
 
+// Функция для отправки изменённых данных в db.json
 function editBook(objEditBook, id) {
+  // в параметры принимаем: измененный объект и id по которому будем обращаться
   fetch(`${API}/${id}`, {
-    method: "PATCH",
+    method: "PATCH", // используем метод PATCH, для запроса на изменение данных в db.json
     headers: {
       "Content-Type": "application/json; charset=utf-8",
     },
     body: JSON.stringify(objEditBook),
-  }).then(() => readBooks());
+  }).then(() => readBooks()); // вызов функции для отображения данных, сразу же после нажатия на кнопку сохранить
+}
+
+// ! =============== SEARCH ================
+// Сохраняем в переменную инпут поиска из index.html
+let inpSearch = document.getElementById("inpSearch");
+
+// Навешиваем событие на инпут
+inpSearch.addEventListener("input", (event) => {
+  searchValue = event.target.value; // сохраняем в переменную значение инпута
+  readBooks(); // вызываем функцию для отображения данных, сразу же после изменения инпута Поиск
+});
+
+// ! ================ PAGINATION ==================
+// сохраняем в переменные кнопки назад и вперед из index.html для пагинации
+let prevBtn = document.getElementById("prevBtn");
+let nextBtn = document.getElementById("nextBtn");
+
+// событие на кнопку пред
+prevBtn.addEventListener("click", () => {
+  if (currentPage <= 1) return; // проверка на то, чтобы текущая страница не уменьшалась 1
+  currentPage = currentPage - 1; // уменьешение текущей страницы на одну, если условие не сработает
+  readBooks(); // вызов функции для отображения данных, после нажатия кнопки пред
+});
+
+// событие на кнопку след
+nextBtn.addEventListener("click", () => {
+  if (currentPage >= countPage) return; // проверка на то, чтобы текущая страница не увеличилась количества всех страниц(countPage)
+  currentPage = currentPage + 1; // увелечение текущей страницы на одну, если условие не сработает
+  readBooks(); // вызов функции для отображения данных, при нажатии кнопки след
+});
+
+// функция для нахождения количества страниц
+function sumPage() {
+  fetch(API) // запрос в db.json, для того чтобы получить весь массив с книгами
+    .then((res) => res.json()) // переформатируем в обычный формат js
+    .then((data) => {
+      // сохраняем в переменную количесвто всех страниц, с помощью свойства length узнаём длину массива, затем делим на лимит(сколько карточек хотим отобразить на одной странице) и обворачиваем в метод Math.ceil(), для того чтобы округлить резульат
+      countPage = Math.ceil(data.length / 6);
+    });
 }
